@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ui import View, Button
 import asyncio
 import random
 import os
@@ -9,6 +8,8 @@ from threading import Thread
 
 # --- Discord Setup ---
 intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
 client = commands.Bot(command_prefix="!", intents=intents)
 
 # --- Tokens ---
@@ -49,37 +50,38 @@ categorized_affirmations = {
 def get_affirmation_by_category(category):
     return random.choice(categorized_affirmations.get(category, ["Category not found."]))
 
-# --- Buttons ---
-class CategoryButton(Button):
-    def __init__(self, category):
-        super().__init__(label=category.capitalize(), style=discord.ButtonStyle.primary)
-        self.category = category
-
-    async def callback(self, interaction: discord.Interaction):
-        affirmation = get_affirmation_by_category(self.category)
-        await interaction.response.send_message(affirmation, ephemeral=True)
-
-class CategoryView(View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        for category in categorized_affirmations:
-            self.add_item(CategoryButton(category))
-
-# --- Task: Send Message Every 6 Hours ---
-async def send_love_and_buttons_every_6_hours():
+# --- Daily Affirmation Task ---
+async def send_random_affirmation_daily():
     await client.wait_until_ready()
     user = await client.fetch_user(GIRLFRIEND_USER_ID)
 
     while not client.is_closed():
         try:
-            await user.send("𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\nPick a category for your affirmation today:", view=CategoryView())
-            print("Sent 'I love you' with buttons.")
+            category = random.choice(list(categorized_affirmations.keys()))
+            affirmation = get_affirmation_by_category(category)
+            message = f"𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\nHere's your affirmation:\n“{affirmation}”\n\nWant another one? Just reply with: love, confidence, appreciation, or presence."
+            await user.send(message)
+            print("Sent random daily affirmation.")
         except Exception as e:
             print(f"Error sending message: {e}")
 
-        await asyncio.sleep(6 * 60 * 60)  # 6 hours
+        await asyncio.sleep(6 * 60 * 60)  # 6 hours (adjust as needed)
 
-# --- Events ---
+# --- Respond to Category Replies ---
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+
+    if message.author.id == GIRLFRIEND_USER_ID:
+        content = message.content.lower().strip()
+        if content in categorized_affirmations:
+            affirmation = get_affirmation_by_category(content)
+            await message.channel.send(affirmation)
+
+    await client.process_commands(message)
+
+# --- On Ready ---
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
@@ -87,9 +89,9 @@ async def on_ready():
         status=discord.Status.dnd,
         activity=discord.Activity(type=discord.ActivityType.listening, name="Her heart 💛")
     )
-    client.loop.create_task(send_love_and_buttons_every_6_hours())
+    client.loop.create_task(send_random_affirmation_daily())
 
-# --- Keep Alive for Replit ---
+# --- Keep Alive (for Railway or Replit) ---
 app = Flask('')
 
 @app.route('/')
@@ -102,6 +104,6 @@ def run():
 def keep_alive():
     Thread(target=run).start()
 
-# --- Run ---
+# --- Run Bot ---
 keep_alive()
 client.run(TOKEN)
