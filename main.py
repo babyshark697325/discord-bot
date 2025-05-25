@@ -47,6 +47,16 @@ categorized_affirmations = {
     ]
 }
 
+# --- Emotion Keyword Mapping ---
+emotion_to_category = {
+    "sad": "love",
+    "lonely": "presence",
+    "unseen": "appreciation",
+    "insecure": "confidence",
+    "lost": "presence",
+    "tired": "confidence"
+}
+
 def get_affirmation_by_category(category):
     return random.choice(categorized_affirmations.get(category, ["Category not found."]))
 
@@ -65,9 +75,9 @@ async def send_random_affirmation_daily():
         except Exception as e:
             print(f"Error sending message: {e}")
 
-        await asyncio.sleep(6 * 60 * 60)  # 6 hours (adjust as needed)
+        await asyncio.sleep(6 * 60 * 60)  # 6 hours
 
-# --- Respond to Category Replies ---
+# --- Respond to Keywords or Emotions ---
 @client.event
 async def on_message(message):
     if message.author == client.user:
@@ -75,13 +85,21 @@ async def on_message(message):
 
     if message.author.id == GIRLFRIEND_USER_ID:
         content = message.content.lower().strip()
+
+        # Category keyword
         if content in categorized_affirmations:
             affirmation = get_affirmation_by_category(content)
             await message.channel.send(affirmation)
 
+        # Emotion-to-category
+        elif content in emotion_to_category:
+            category = emotion_to_category[content]
+            affirmation = get_affirmation_by_category(category)
+            await message.channel.send(affirmation)
+
     await client.process_commands(message)
 
-# --- On Ready ---
+# --- On Ready Event ---
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
