@@ -69,7 +69,7 @@ async def send_random_affirmation_daily():
         try:
             category = random.choice(list(categorized_affirmations.keys()))
             affirmation = get_affirmation_by_category(category)
-            message = f"𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\nHere's your affirmation:\n“{affirmation}”\n\nWant another one? Just reply with: love, confidence, appreciation, or presence."
+            message = f"“{affirmation}”\n\n𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n\nWant another one? Just reply with: love, confidence, appreciation, or presence."
             await user.send(message)
             print("Sent random daily affirmation.")
         except Exception as e:
