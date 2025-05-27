@@ -70,10 +70,10 @@ async def send_random_affirmation_daily():
             category = random.choice(list(categorized_affirmations.keys()))
             affirmation = get_affirmation_by_category(category)
             message = (
-                '"Affirmation"\n'
-                '𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n'
-                '\n'
-                'Want another one? Just reply with: love, confidence, appreciation, or presence.'
+                f"{affirmation}\n"
+                f"𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n"
+                f"\n"
+                f"Want another one? Just reply with: love, confidence, appreciation, or presence."
             )
             await user.send(message)
             print("Sent random daily affirmation.")
@@ -95,12 +95,16 @@ async def on_message(message):
         if content in categorized_affirmations:
             affirmation = get_affirmation_by_category(content)
             await message.channel.send(affirmation)
+            return  # Prevent double response
 
         # Emotion-to-category
         elif content in emotion_to_category:
             category = emotion_to_category[content]
             affirmation = get_affirmation_by_category(category)
             await message.channel.send(affirmation)
+            return  # Prevent double response
+
+    await client.process_commands(message)
 
     # No need for client.process_commands(message) since no commands are used
 
