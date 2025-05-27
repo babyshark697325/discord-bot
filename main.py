@@ -69,7 +69,11 @@ async def send_random_affirmation_daily():
         try:
             category = random.choice(list(categorized_affirmations.keys()))
             affirmation = get_affirmation_by_category(category)
-            message = f"“{affirmation}”\n\n𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n\nWant another one? Just reply with: love, confidence, appreciation, or presence."
+            message = (
+                f"{affirmation}\n\n"
+                f"𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n\n"
+                f"Want another one? Just reply with: love, confidence, appreciation, or presence."
+            )
             await user.send(message)
             print("Sent random daily affirmation.")
         except Exception as e:
@@ -97,7 +101,7 @@ async def on_message(message):
             affirmation = get_affirmation_by_category(category)
             await message.channel.send(affirmation)
 
-    await client.process_commands(message)
+    # No need for client.process_commands(message) since no commands are used
 
 # --- On Ready Event ---
 @client.event
