@@ -67,8 +67,7 @@ async def send_random_affirmation_daily():
 
     while not client.is_closed():
         try:
-            category = random.choice(list(categorized_affirmations.keys()))
-            affirmation = get_affirmation_by_category(category)
+            affirmation = get_affirmation_by_category(random.choice(list(categorized_affirmations.keys())))
             message = (
                 f"{affirmation}\n"
                 f"𝐈 𝐥𝐨𝐯𝐞 𝐲𝐨𝐮 💛\n"
@@ -85,28 +84,33 @@ async def send_random_affirmation_daily():
 # --- Respond to Keywords or Emotions ---
 @client.event
 async def on_message(message):
+    # Ignore the bot's own messages
     if message.author == client.user:
         return
 
-    if message.author.id == GIRLFRIEND_USER_ID:
+    # DEBUG: show every incoming DM to console
+    print(f"[on_message] channel={type(message.channel).__name__}, author={message.author.id}, content={message.content!r}")
+
+    # Only handle DMs from the target user
+    if isinstance(message.channel, discord.DMChannel) and message.author.id == GIRLFRIEND_USER_ID:
         content = message.content.lower().strip()
 
         # Category keyword
         if content in categorized_affirmations:
             affirmation = get_affirmation_by_category(content)
             await message.channel.send(affirmation)
-            return  # Prevent double response
+            print(f"[on_message] Sent category affirmation for '{content}'")
+            return
 
         # Emotion-to-category
-        elif content in emotion_to_category:
+        if content in emotion_to_category:
             category = emotion_to_category[content]
             affirmation = get_affirmation_by_category(category)
             await message.channel.send(affirmation)
-            return  # Prevent double response
+            print(f"[on_message] Sent emotion-mapped affirmation for '{content}' → '{category}'")
+            return
 
-    await client.process_commands(message)
-
-    # No need for client.process_commands(message) since no commands are used
+    # No commands to process, so we skip client.process_commands
 
 # --- On Ready Event ---
 @client.event
